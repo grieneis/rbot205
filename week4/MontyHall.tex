@@ -1,0 +1,230 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Simple Sectioned Essay Template
+% LaTeX Template
+%
+% This template has been downloaded from:
+% http://www.latextemplates.com
+%
+% Note:
+% The \lipsum[#] commands throughout this template generate dummy text
+% to fill the template out. These commands should all be removed when 
+% writing essay content.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+% PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[12pt]{article} % Default font size is 12pt, it can be changed here
+
+\usepackage{geometry} % Required to change the page size to A4
+\geometry{a4paper} % Set the page size to be A4 as opposed to the default US Letter
+
+\usepackage{graphicx} % Required for including pictures
+
+\usepackage{float} % Allows putting an [H] in \begin{figure} to specify the exact location of the figure
+\usepackage{wrapfig} % Allows in-line images such as the example fish picture
+\usepackage{amsmath}
+
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+
+\linespread{1.2} % Line spacing
+
+%\setlength\parindent{0pt} % Uncomment to remove all indentation from paragraphs
+
+\graphicspath{{Pictures/}} % Specifies the directory where pictures are stored
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+% TITLE PAGE
+%----------------------------------------------------------------------------------------
+% \begin{titlepage}
+
+% \newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
+
+% \center % Center everything on the page
+
+% \textsc{\LARGE University Name}\\[1.5cm] % Name of your university/college
+% \textsc{\Large Major Heading}\\[0.5cm] % Major heading such as course name
+% \textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
+
+% \HRule \\[0.4cm]
+% { \huge \bfseries Title}\\[0.4cm] % Title of your document
+% \HRule \\[1.5cm]
+
+% \begin{minipage}{0.4\textwidth}
+% \begin{flushleft} \large
+% \emph{Author:}\\
+% John \textsc{Smith} % Your name
+% \end{flushleft}
+% \end{minipage}
+% ~
+% \begin{minipage}{0.4\textwidth}
+% \begin{flushright} \large
+% \emph{Supervisor:} \\
+% Dr. James \textsc{Smith} % Supervisor's Name
+% \end{flushright}
+% \end{minipage}\\[4cm]
+
+% {\large \today}\\[3cm] % Date, change the \today to a set date if you want to be precise
+
+% %\includegraphics{Logo}\\[1cm] % Include a department/university logo - this will require the graphicx package
+
+% \vfill % Fill the rest of the page with whitespace
+
+% \end{titlepage}
+%----------------------------------------------------------------------------------------
+% TABLE OF CONTENTS
+%----------------------------------------------------------------------------------------
+
+%\tableofcontents % Include a table of contents
+
+\newpage % Begins the essay on a new page instead of on the same page as the table of contents 
+
+%----------------------------------------------------------------------------------------
+% INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\section{The Monty Hall Problem} % Major section
+\subsection{Introduction}
+
+In the early 1990s, a reader wrote into the Ask Marilyn column of Parade magazine with a question \cite{Savant:2018}:
+\begin{quote}
+Suppose you’re on a game show, and you’re given the choice of three doors. Behind one door is a car, behind the others, goats. You pick a door, say \#1, and the host, who knows what’s behind the doors, opens another door, say \#3, which has a goat. He says to you, "Do you want to pick door \#2?" Is it to your advantage to switch your choice of doors?
+\end{quote}
+
+Marilyn vos Savant's answer was that yes, it is better to switch doors.  This question and her response elicited thousands of angry letters, many from people with PhDs, claiming that she was wrong.  The letter writers reasononing was simple:  there are 2 doors left, either could have the car behind it, so the probability of your door having the car is 0.5, and the probability of door \#2 having the car is 0.5, so there is no reason to switch.  Just because you know that the car is not behind door \#3, it doesn't tell you anything about doors \#1 and \#2.
+
+Or does it?
+
+Known as the Monty Hall problem (named after Monty Hall, the host of the game show "Let's Make a Deal" on which the problem is baseds), this seeming paradox confounds most people when they are first presented with it.  How does knowing that door \#3 has a goat behind it make it more likely that there is a car behind door \#2 than behind door \#1? The solution to this problem is based on a probabilistic technique known as Bayes' rule, which is the foundation of modern robotics.
+
+
+%Example citation \cite{Figueredo:2009dg}.
+
+
+\section{Probability and Bayes' rule}
+\subsection{Random variables}
+Before we get into Bayes' rule and how it helps us reason about the Monty Hall problem, we need a few definitions.  Suppose you are rolling a 6 sided die.  Once you roll it, it will show a number between 1 and 6.  We can call this set of potential outcomes $S$, where $S = {1, 2, 3, 4, 5, 6}$.  We then refer to the result of the roll $X$ as a random variable with support $S$.  A random variable is something that will take on a value that follows some probabilistic rule.  In the case of the die, it is equally likely to take on one of the six values in $S$.  The probability that $X$ takes on some specific value $x$, where $x \epsilon S$, is written as $P(X = x)$.  In the case of a fair die, $P(X = 1) = ... = P(X = 6) = \frac{1}{6}$.  This can be abbreviated at $P(x)$.
+Probabilites add up:  the probability of a die roll coming up 5 OR 6 is $P(5) + P(6)$.  The sum of all discrete probabilities for a random variable always equals 1:  $\sum_{x}^{}P(x) = 1$. For the die, $P(1) + P(2) + P(3) + P(4) + P(5) + P(6) = 1$.  The set of all possible values that the variable can take on, as well as their associated probablities, is known as a probability distribution.
+
+Random variables can represent discrete measurements (e.g. rolling a die or flipping a coin), or continuous measurements (e.g. measuring temperature or distance from a robot to a wall).  We will only be discussing discrete probability distributions in this lecture, but will move on to continuous distributions in the next one.
+
+\subsection{Multiple random variables}
+It's nice to be able to describe the probabliliy of a single event happening, but often we want to be able to describe how probabilities interact with each other.  For example, what is the probability of rolling 2 dice and getting snake eyes (both dice show a 1)?  For that, we can introduce extra random variables.  $P(X = x, Y = y) = P(x, y)$ represents that probability that $X$ takes on value $x$ and $Y$ takes on value $y$.  For snake eyes, that is $P(1, 1)$.  This is known as the joint probability.
+
+Two random variables $x$ and $y$ are considered to be independent if $P(x, y) = P(x)P(y)$.  Independence means that the outcome of one variable does not affect the outcome of the other.  The results of rolling two dice are independent variables because rolling one does not affect the other.  No matter what the first die shows, the second die has equal probability of showing any value.  For snake eyes, that is $P(1, 1) = p(1)p(1) = \frac{1}{6}(\frac{1}{6}) = \frac{1}{36}$.
+
+\subsection{Conditional probability}
+Sometimes the knowing value of one random variable affects the probability of another one.  This is known as conditional probability.  We can express the probability that $X = x$ given that $Y = y$ as $P(X = x | Y = y) = P(x|y)$.
+
+This allows us to express things such as the probability of flipping a coin a second time and getting heads given that it came up tails the first time we flipped it or the probabiilty that it will snow given that the temperature is below freezing outside.
+
+We can calculate conditional probability as $P(x|y) = \frac{P(x,y)}{P(y)}$, given $P(y) > 0$.  This essentially says that the probability of $x$ occurring given that $y$ occurred is the probability of both happening divided by the probabilty that $y$ happened.  For independent variables, this is $P(x|y) = \frac{P(x)P(y)}{P(y)} = P(x)$.  That is, the value of $x$ does not depend on the value of $y$.
+
+When flipping a coin twice in a row, both flips are independent.  Thus $P(heads | tails) = \frac{P(heads, tails)}{P(tails)} = \frac{0.5 * 0.5}{0.5} = 0.5$. 
+
+We can use multiple conditional probabilites to calculate the probability of a single random variable using the formula $P(x) = \sum_{k}^{}P(x | y_k)P(y_k)$.
+
+Suppose we want to know how likely it is that it will snow today.  We know how likely it is to to snow given that it is below freezing ($P(snow | freezing)$) and how likely it is to snow given that it is above freezing ($P(snow | warm)$).  We also know probability that it is below freezing today ($P(freezing)$).  Since the temperature can only be above or at / below freezing, we can combine this information to calculate $P(snow)$.
+\begin{align}
+P(snow) = P(snow | warm)(P(warm)) + P(snow | freezing)(P(freezing))
+\end{align}
+For the snow example, the variables are not independent.  Suppose instead we wanted to know $P(freezing | snow)$ but only have the information from the last paragraph.  $P(freezing | snow) = \frac{P(freezing, snow)}{P(snow)}$.  In this case, we know that the variables are not independent, but we do not know how to easily express $P(snow, freezing)$.  For that, we need Bayes' rule.
+
+\subsection{Bayes' rule}
+Bayes' rule states that
+\begin{align}
+P(y | x) &= \frac{P(x | y)P(y)}{P(x)} \\
+&= \frac{P(x | y)P(y)}{\sum_{k}^{}P(x | y_k)P(y_k)}.
+\end{align}
+The first part, $P(y | x)$ is known as the posterior.  It is the probability distribution in which we are interested.  $P(y)$ is the prior.  It is the state of the probability distribution prior to applying event $x$.  $P(x | y)$ is the likelihood and is also something that we know beforehand.
+
+Let's use a different example.  Suppose we own an apple orchard and have a machine to sort out the rotten apples so we don't sell them.  The machine has a rotten apple detector.  An apple is presented to the detector, and the detector goes off if it detects that the apple is rotten.  In this example, the prior is the probability that an apple is rotten.  If 1 in 1000 apples is rotten, then $P(rotten) = 0.001$ and $P(fresh) = 0.999$.  The likelihood is the accuracy of our detector.  Suppose the detector is 99\% accurate, then $P(detection | rotten) = 0.99$ and $P(no detection | fresh) = 0.99$.  Likewise $P(detection | fresh) = 0.01$ and $P(no detection | rotten) = 0.01$.  We can use Bayes' rule to determine the probability that an apple is rotten given that the detector went off.
+
+\begin{align}
+P(rotten | detection) &= \frac{P(rotten)P(detection | rotten)}{P(detection | rotten)P(rotten) + P(detection | not rotten)P(not rotten)} \\
+&= \frac{0.001(0.99)}{0.99(0.001) + 0.01(0.999)} \\
+&= 0.09
+\end{align}
+
+That means that even though our detector is 99\% accurate, there is only a 9\% chance that an apple is rotten if the detector goes off.
+
+\subsection{Back to Monty Hall}
+Now that we understand Bayes' rule, we can go back and solve the Monty Hall problem.  We want to know if it is better to switch doors or keep the current door.  To figure this out, we define two random variables: $P(C_k)$ is the probability that the car is behind door $k$ and $P(D_k)$ is the probability that the host opens door $k$.  In the problem statement, we have chosen door 1, and the host has opened door 3.  Thus, we want to know if $P(C_2 | D_3) > P(C_1 | D_3)$.  If it is, then we should switch.
+
+First, we determine a few likelihoods:
+$P(D_3 | C_1) = 0.5$.  If the car is behind door 1, the host will open either 2 or 3 with equal probability, as both have goats behind them.
+$P(D_3 | C_2) = 1$.  If the car is behind door 2, the host must open door 3.
+$P(D_3 | C_3) = 0$.  If the car is behind door 3, the host will not open it.
+
+Initially, the car is placed randomly behind one of the three door.  $P(C_1) = P(C_2) = P(C_3) = \frac{1}{3}$.  These represent our priors.
+
+With all of this information, we can calculate the probability that the host opens door 3:
+\begin{align}
+P(D_3) &= P(D_3 | C_1)P(C_1) + P(D_3 | C_2)P(C_2) + P(D_3 | C_3)P(C_3)\\
+&= \frac{1}{3}(0.5) + \frac{1}{3}(1) + \frac{1}{3}(0) \\
+&= \frac{1}{2}
+\end{align}
+
+Now we can calculate
+\begin{align}
+P(C_1 | D_3) &= \frac{P(D_3 | C_1)P(C_1)}{P(D_3)}\\
+&=\frac{\frac{1}{2}(\frac{1}{3})}{\frac{1}{2}}\\
+&=\frac{1}{3}
+\end{align}
+
+and
+\begin{align}
+P(C_2 | D_3) &= \frac{P(D_3 | C_2)P(C_2)}{P(D_3)}\\
+&=\frac{1(\frac{1}{3})}{\frac{1}{2}}\\
+&=\frac{2}{3}
+\end{align}
+
+It is better to switch doors.  Given that the host opened door 3, it is twice as likely that the car is behind door 2 than door 1.
+
+\section{Applications to robotics}
+So, you may be asking, 'How does this apply to robotics?'.  Your robot will likely never be a game show participant and will never have to choose between a door with a goat and a door with a car.  
+
+Robots operate in the real world, and the real world is messy.  Everything that your robot does to measure and understand the physical world is full of uncertainty, and we can use probability and Bayes' rule to deal with that uncertainty.  Every sensor that is on a robot is noisy.  Just like the rotten apple detector, it will only tell you the correct result with some probability.  Better sensors have a smaller spread in error, but there is always some noise.  For example, a laser range finder can be used to measure the distance to a wall.  If you point it at a wall and watch, no two measurements will be exactly the same.  Instead, they will vary according to some probability distribution.  Accounting for this uncertainty allows us to make a better guess of the distance to the wall than any single measurement. 
+
+Or, think of a robot measuring its position in the world.  Its position can be represented using a probability distribution.  This problem can be framed using Bayes' rule, where the prior is the probability distribution of the robot's current position, and the posterior is the distribution after a measurement has been made.  Bayes' rule allows us to update the probability distribution based on the measurement and our model of how uncertain the measurement is.  This concept is the basis of robot localization algorithms, including Kalman filters and particle filters.
+
+\section{Conclusions}
+
+Probability allows us to express how likely it is that a random variable will take on a specific value or set of values.  We can use this to reason about uncertain things in the world.  Bayes' rule allows us to 
+
+\section{Further reading}
+Students are directed to chapter 2 of Probabilistic Robotics, which explains these concepts and their application to robotic localization in more detail.
+
+%------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+% BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\begin{thebibliography}{99} % Bibliography - this is intentionally simple in this template
+\bibitem{Savant:2018}
+Savant, Marilyn vos.
+\newblock {\em Game Show Problem}
+\newblock {http://marilynvossavant.com/game-show-problem/}, Retrieved Sept. 10, 2018
+
+\bibitem{Tanis:2008}
+Tanis, E. and Hogg, R.
+\newblock {\em A Brief Course in Mathematical Statistics}
+\newblock {Prentice Hall}, 2008
+
+\bibitem{Thrun:2006}
+Thrun, S., Burgand, W. and Fox, D.
+\newblock {\em Probabilistic Robotics}
+\newblock {MIT Press}, 2006
+ 
+
+ 
+\end{thebibliography}
+
+%----------------------------------------------------------------------------------------
+
+\end{document}
