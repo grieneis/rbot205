@@ -9,13 +9,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # create the map
-PROB_DESIRED = 1.0
+PROB_DESIRED = 0.99
 PROB_OFF = (1 - PROB_DESIRED) / 2
 PROB_BACK = 0
+STANDARD_REWARD = -1
 HOLE_REWARD = -100
-GAMMA = 1.0
+BORDER_REWARD = 0
+IN_PLACE_REWARD = -1
 MAX_REWARD = 100
-GOAL = (5, 2)
+GAMMA = 0.99
 
 def iterate(val_in, reward):
     # val_in is a 2d array
@@ -26,63 +28,65 @@ def iterate(val_in, reward):
     max_i = val_in.shape[0]
     max_j = val_in.shape[1]
     
-    for i in range(max_i):
-        for j in range(max_j):
+    for i in range(1, max_i - 1):
+        for j in range(1, max_j - 1):
             
             # the new value is the max over the 4 possible control actions
             val = float('-inf')
+            
+            # Caculate the raw values around the robot
+            val_stay = val_in[i, j]
+            val_up = val_in[i - 1, j] if reward[i - 1, j] != BORDER_REWARD else val_stay
+            val_down = val_in[i + 1, j] if reward[i + 1, j] != BORDER_REWARD else val_stay
+            val_left = val_in[i, j - 1] if reward[i, j - 1] != BORDER_REWARD else val_stay
+            val_right = val_in[i, j + 1] if reward[i, j + 1] != BORDER_REWARD else val_stay
+            
+            
             # test up
-            if i > 0:
-                r = reward[i - 1, j]
-                prob_up = val_in[i - 1, j] * PROB_DESIRED
-                prob_left = val_in[i, j - 1] * PROB_OFF if j > 0 else 0
-                prob_right = val_in[i, j + 1] * PROB_OFF if j < max_j - 1 else 0
-                prob_down = val_in[i + 1, j] * PROB_BACK if i < max_i - 1 else 0
-                val_up = r + prob_up + prob_left + prob_right + prob_down
-                if val_up > val:
-                    val = val_up
-                    policy = 0
-            else:
-                # bumped off of wall?
-                pass
-            # test down
-            if i < max_i - 1:
-                r = reward[i + 1, j]
-                prob_up = val_in[i - 1, j] * PROB_BACK
-                prob_left = val_in[i, j - 1] * PROB_OFF if j > 0 else 0
-                prob_right = val_in[i, j + 1] * PROB_OFF if j < max_j - 1 else 0
-                prob_down = val_in[i + 1, j] * PROB_DESIRED if i < max_i - 1 else 0
-                val_down = r + prob_up + prob_left + prob_right + prob_down
-                if val_down > val:
-                    val = val_down
-                    policy = 1
+            prob_up = val_up * PROB_DESIRED \
+                + val_down * PROB_BACK \
+                + val_left * PROB_OFF \
+                + val_right * PROB_OFF
+            r_up = reward[i - 1, j] if reward[i - 1, j] != BORDER_REWARD else IN_PLACE_REWARD
+            vf_up = r_up + GAMMA * prob_up
+            if vf_up > val:
+                val = vf_up
+                policy = 0
+                
+            prob_down = val_up * PROB_BACK \
+                + val_down * PROB_DESIRED \
+                + val_left * PROB_OFF \
+                + val_right * PROB_OFF
+            r_down = reward[i + 1, j] if reward[i + 1, j] != BORDER_REWARD else IN_PLACE_REWARD
+            vf_down = r_down + GAMMA * prob_down
+            if vf_down > val:
+                val = vf_down
+                policy = 1
+            
+            prob_left = val_up * PROB_OFF \
+                + val_down * PROB_OFF \
+                + val_left * PROB_DESIRED \
+                + val_right * PROB_BACK
+            r_left = reward[i, j - 1] if reward[i, j - 1] != BORDER_REWARD else IN_PLACE_REWARD
+            vf_left = r_left + GAMMA * prob_left
+            if vf_left > val:
+                val = vf_left
+                policy = 2
+                
+            prob_right = val_up * PROB_OFF \
+                + val_down * PROB_OFF \
+                + val_left * PROB_BACK \
+                + val_right * PROB_DESIRED
+            r_right = reward[i, j + 1] if reward[i, j + 1] != BORDER_REWARD else IN_PLACE_REWARD
+            vf_right = r_right + GAMMA * prob_right
+            if vf_right > val:
+                val = vf_right
+                policy = 3
                     
-            # test left
-            if j > 0:
-                r = reward[i, j - 1]
-                prob_up = val_in[i - 1, j] * PROB_OFF
-                prob_left = val_in[i, j - 1] * PROB_DESIRED if j > 0 else 0
-                prob_right = val_in[i, j + 1] * PROB_BACK if j < max_j - 1 else 0
-                prob_down = val_in[i + 1, j] * PROB_OFF if i < max_i - 1 else 0
-                val_left = r + prob_up + prob_left + prob_right + prob_down
-                if val_left > val:
-                    val = val_left
-                    policy = 2
-            # test right
-            if j < max_j - 1:
-                r = reward[i, j + 1]
-                prob_up = val_in[i - 1, j] * PROB_OFF
-                prob_left = val_in[i, j - 1] * PROB_BACK if j > 0 else 0
-                prob_right = val_in[i, j + 1] * PROB_DESIRED if j < max_j - 1 else 0
-                prob_down = val_in[i + 1, j] * PROB_OFF if i < max_i - 1 else 0
-                val_right = r + prob_up + prob_left + prob_right + prob_down
-                if val_right > val:
-                    val = val_right
-                    policy = 3
-                    
-#            if reward[i, j] == MAX_REWARD or reward[i, j] == HOLE_REWARD:
-#                val = reward[i, j]
-            val_out[i, j] = GAMMA * val
+            if reward[i, j] == MAX_REWARD or reward[i, j] == HOLE_REWARD:
+                val = 0
+                policy = 4
+            val_out[i, j] =  val
             policy_out[i, j] = policy
     return (val_out, policy_out)
 
@@ -95,6 +99,7 @@ def compareArrays(old_arr, new_arr):
             if np.fabs(old_arr[i, j] - new_arr[i, j]) > 0.001:
                 return False
     return True
+
 def printArray(arr):
     print("{}".format(arr))
     
@@ -116,7 +121,9 @@ def displayValuesAndControlPolicy(val, policy=None):
                     character = '<'
                 elif policy_val == 3:
                     character = '>'
-                ax.text(i - 0.15, j + 0.15, character, size='20', color='r')
+                elif policy_val == 4:
+                    character = 'o'
+                ax.text(j - 0.3, i + 0.3, character, size='12', color='r')
 
 
 # Create the intial arrays
@@ -124,11 +131,18 @@ def displayValuesAndControlPolicy(val, policy=None):
 #reward[GOAL] = MAX_REWARD
 #reward[4, 4:12] = HOLE_REWARD
 #reward[4:8, 4:12] = HOLE_REWARD  
-reward = np.ones((5, 5)) * -1
-reward[(2, 2)] = MAX_REWARD
-#reward[1:, 0] = HOLE_REWARD
+reward = np.ones((10, 22)) * STANDARD_REWARD
 
-#printArray(reward)
+reward[:, 0] = BORDER_REWARD
+reward[:, -1] = BORDER_REWARD
+reward[0, :] = BORDER_REWARD
+reward[-1, :] = BORDER_REWARD
+
+reward[(5, 3)] = MAX_REWARD
+reward[4, 5:12] = HOLE_REWARD
+reward[6:8, 5:12] = HOLE_REWARD
+
+printArray(reward)
 
 val_old = np.ones(reward.shape) * -1
 policy = None
@@ -139,11 +153,12 @@ while iteration < 1000:
     (val_new, policy) = iterate(val_old, reward)
     if compareArrays(val_old, val_new):
         print("Made it at iteration {}".format(iteration))
-        print(val_new)
         break
     val_old = val_new
     iteration += 1
-    printArray(val_old)
+#    printArray(val_old)
+#    printArray(policy)
 printArray(val_old)
+printArray(policy)
 
 displayValuesAndControlPolicy(val_old, policy)
