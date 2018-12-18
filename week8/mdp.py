@@ -9,14 +9,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # create the map
-PROB_DESIRED = 1.0
+PROB_DESIRED = 0.8
 PROB_OFF = (1 - PROB_DESIRED) / 2
 PROB_BACK = 0
-STANDARD_REWARD = -0.01
-HOLE_REWARD = -1
+STANDARD_REWARD = -1
+HOLE_REWARD = -100
 BORDER_REWARD = -1000
 IN_PLACE_REWARD = 0
-MAX_REWARD = 1
+MAX_REWARD = 100
 GAMMA = 1.0
 
 def iterate(val_in, reward):
@@ -41,62 +41,32 @@ def iterate(val_in, reward):
             val_left = val_in[i, j - 1] if reward[i, j - 1] != BORDER_REWARD else val_stay
             val_right = val_in[i, j + 1] if reward[i, j + 1] != BORDER_REWARD else val_stay
             
-#            r_up = reward[i - 1, j] if reward[i - 1, j] != BORDER_REWARD else IN_PLACE_REWARD
-#            r_down = reward[i + 1, j] if reward[i + 1, j] != BORDER_REWARD else IN_PLACE_REWARD
-#            r_left = reward[i, j - 1] if reward[i, j - 1] != BORDER_REWARD else IN_PLACE_REWARD
-#            r_right = reward[i, j + 1] if reward[i, j + 1] != BORDER_REWARD else IN_PLACE_REWARD
 
+            val_array = np.array([val_up, val_down, val_left, val_right])
+            
+            vf_up = np.dot(val_array, 
+                           np.array([PROB_DESIRED, PROB_BACK, PROB_OFF, PROB_OFF]))
+            vf_down = np.dot(val_array, 
+                           np.array([PROB_BACK, PROB_DESIRED, PROB_OFF, PROB_OFF]))
+            vf_left = np.dot(val_array, 
+                           np.array([PROB_OFF, PROB_OFF, PROB_DESIRED, PROB_BACK]))
+            vf_right = np.dot(val_array, 
+                           np.array([PROB_OFF, PROB_OFF, PROB_BACK, PROB_DESIRED]))
+            
+            vf_array = np.array([vf_up, vf_down, vf_left, vf_right])
+            
+            policy = np.argmax(vf_array)
+            val = np.max(vf_array)
+            
             r_here = reward[i, j]
 
-#            val_up += r_up
-#            val_down += r_down
-#            val_left += r_left
-#            val_right += r_right
-            
-            # test up
-            prob_up = val_up * PROB_DESIRED \
-                + val_down * PROB_BACK \
-                + val_left * PROB_OFF \
-                + val_right * PROB_OFF
-            vf_up = prob_up #r_up + prob_up
-            if vf_up > val:
-                val = vf_up
-                policy = 0
-                
-            prob_down = val_up * PROB_BACK \
-                + val_down * PROB_DESIRED \
-                + val_left * PROB_OFF \
-                + val_right * PROB_OFF
-            vf_down = prob_down # r_down + prob_down
-            if vf_down > val:
-                val = vf_down
-                policy = 1
-            
-            prob_left = val_up * PROB_OFF \
-                + val_down * PROB_OFF \
-                + val_left * PROB_DESIRED \
-                + val_right * PROB_BACK
-            vf_left = prob_left #r_left + prob_left
-            if vf_left > val:
-                val = vf_left
-                policy = 2
-                
-            prob_right = val_up * PROB_OFF \
-                + val_down * PROB_OFF \
-                + val_left * PROB_BACK \
-                + val_right * PROB_DESIRED
-            vf_right = prob_right #r_right + prob_right
-            if vf_right > val:
-                val = vf_right
-                policy = 3
-                    
               
             if r_here == MAX_REWARD or r_here == HOLE_REWARD:
                 val = 0
                 policy = 4
             if r_here == BORDER_REWARD:
                 val = 0
-                policy = 4
+                policy = -1
                 r_here = 0
 
             val_out[i, j] =  GAMMA * val + r_here
@@ -116,13 +86,14 @@ def compareArrays(old_arr, new_arr):
 def printArray(arr):
     print("{}".format(arr))
     
-def displayValuesAndControlPolicy(val, policy=None):
+def displayArray(val, policy=None, title='', save=False):
     fig, ax = plt.subplots()
     ax.imshow(val, cmap = plt.get_cmap('gray'))
     max_i = val.shape[0]
     max_j = val.shape[1]
     for i in range(max_i):
-        for j in range(max_j): 
+        for j in range(max_j):
+            character = ''
             if policy is not None:
                 character = ''
                 policy_val = policy[i, j]
@@ -136,10 +107,16 @@ def displayValuesAndControlPolicy(val, policy=None):
                     character = '>'
                 elif policy_val == 4:
                     character = 'o'
-            else:
-                character = '{0:.2f}'.format(val[i, j])
+            elif val[i, j] != 0.0 and val[i, j] != BORDER_REWARD:
+                character = '{0:.1f}'.format(val[i, j])
             ax.text(j - 0.3, i + 0.3, character, 
                     size='10', color='k', backgroundcolor='w')
+    plt.xlabel('x position')
+    plt.ylabel('y position')
+    plt.title(title+' Gamma: {}, P(correct): {}'.format(GAMMA, PROB_DESIRED))
+    if save:
+        plt.savefig('chart_'+str(PROB_DESIRED)+'_'+str(GAMMA)+'_'+title+'.png')
+        
 
 
 # Create the intial arrays
@@ -147,11 +124,13 @@ def displayValuesAndControlPolicy(val, policy=None):
 #reward[GOAL] = MAX_REWARD
 #reward[4, 4:12] = HOLE_REWARD
 #reward[4:8, 4:12] = HOLE_REWARD  
-reward = np.ones((5, 6)) * STANDARD_REWARD
+reward = np.ones((8, 13)) * STANDARD_REWARD
+reward[4, 3:8] = HOLE_REWARD
+reward[6:7, 3:8] = HOLE_REWARD 
 
-reward[1, 4] = 1
-reward[2, 4] = -1
-reward[2, 2] = BORDER_REWARD
+reward[5, 1] = MAX_REWARD
+#reward[2, 4] = HOLE_REWARD
+#reward[2, 2] = BORDER_REWARD
 
 reward[:, 0] = BORDER_REWARD
 reward[:, -1] = BORDER_REWARD
@@ -161,6 +140,8 @@ reward[-1, :] = BORDER_REWARD
 
 
 printArray(reward)
+
+displayArray(reward, None, 'reward', True)
 
 val_old = np.ones(reward.shape) * 0
 policy = None
@@ -173,12 +154,16 @@ while iteration < 1000:
         print("Made it at iteration {}".format(iteration))
         break
     val_old = val_new
-    displayValuesAndControlPolicy(val_old)
+    if iteration <= 3:
+#        displayArray(val_old, None, 'value-at-'+str(iteration), True)
+        pass
+
+#    displayValuesAndControlPolicy(val_old)
     iteration += 1
 #    printArray(val_old)
 #    printArray(policy)
 printArray(val_old)
 printArray(policy)
 
-displayValuesAndControlPolicy(val_old)
-displayValuesAndControlPolicy(val_old, policy)
+#displayArray(val_old, None, 'final_value', True)
+#displayArray(val_old, policy, 'policy', True)
